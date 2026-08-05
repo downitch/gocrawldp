@@ -108,6 +108,7 @@ func (c *Crawler) Crawl(ctx context.Context, target string) (*Snapshot, error) {
   var title string
   if err := chromedp.Run(ctx,
     chromedp.Navigate(snap.URL),
+    chromedp.WaitReady("body"),
     chromedp.OuterHTML("html", &html),
     chromedp.Title(&title),
   ); err != nil {

@@ -4,6 +4,7 @@ import (
   "context"
   "fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -12,12 +13,12 @@ import (
 func run() error {
 	// creating browser window
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", cbrHeadless),
+		chromedp.Flag("headless", cfg.Headless),
 		chromedp.Flag("disable-gpu", true),
 	)
-	if cbrProfile != "" {
+	if cfg.Profile != "" {
 	  opts = append(opts,
-	    chromedp.Flag("user-data-dir", cbrProfile),
+	    chromedp.Flag("user-data-dir", cfg.Profile),
 	   )
 	}
 	// setting up the browser window
@@ -27,23 +28,34 @@ func run() error {
 	defer cancel()
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
+	// crawler part
 	crawler := NewCrawler()
-	for _, h := range cbrHeaders {
+	for _, h := range cfg.Headers {
 	  if err := crawler.AddHeaderString(h); err != nil {
 	    return err
 	  }
 	}
-	snapshot, err := crawler.Crawl(ctx, cbrTargetURL)
+	snapshot, err := crawler.Crawl(ctx, cfg.TargetURL)
 	if err != nil {
 	  return err
 	}
-	// creating scanner
+	// scanner part
   scanner := NewScanner()
-  if err := scanner.LoadDefaultRegexes(); err != nil {
-    return err
+  if !cfg.SkipDefaultRegexp {
+    if err := scanner.LoadDefaultRegexes(); err != nil {
+      return err
+    }
   }
-  if err := scanner.LoadCustomRegexes(); err != nil {
-    return err
+  for _, val := range cfg.CustomRegexps {
+	  parts := strings.SplitN(val, ":", 2)
+	  if len(parts) != 2 {
+		  return fmt.Errorf("invalid regexp: %q", val)
+	  }
+	  name := strings.TrimSpace(parts[0])
+	  value := strings.TrimSpace(parts[1])
+	  if err := scanner.AddRegex(name, value); err != nil {
+	    return err
+	  }
   }
   for url, contents := range snapshot.Files {
     matches := scanner.Scan(url, contents)

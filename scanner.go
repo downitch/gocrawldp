@@ -1,9 +1,7 @@
 package main
 
 import (
-  "fmt"
   "regexp"
-  "strings"
 )
 
 type Scanner struct {
@@ -39,17 +37,14 @@ func (s *Scanner) LoadDefaultRegexes() error {
 	  "url_dot_relative":    `(?:\./|\.\./)[^\s"'<>]+`,
 	  "websocket_url":       `wss?://[^\s"'<>]+`,
 	  "graphql_endpoint":    `/graphql(?:/)?(?:\?[^\s"'<>]*)?`,
-
 	  "fetch_call":          `fetch\s*\(\s*["']([^"']+)["']`,
 	  "axios_call":          `axios\.(?:get|post|put|delete|patch|request)\s*\(\s*["']([^"']+)["']`,
 	  "xhr_call":            `open\s*\(\s*["'](GET|POST|PUT|DELETE|PATCH)["']\s*,\s*["']([^"']+)["']`,
 	  "eventsource_call":    `new\s+EventSource\s*\(\s*["']([^"']+)["']`,
-
 	  "api_key_assignment":  `(?i)\b[a-z0-9_.-]*key[a-z0-9_.-]*\b\s*[:=]\s*["'][^"']+["']`,
 	  "secret_assignment":   `(?i)\b[a-z0-9_.-]*secret[a-z0-9_.-]*\b\s*[:=]\s*["'][^"']+["']`,
 	  "token_assignment":    `(?i)\b[a-z0-9_.-]*token[a-z0-9_.-]*\b\s*[:=]\s*["'][^"']+["']`,
 	  "password_assignment": `(?i)\b[a-z0-9_.-]*password[a-z0-9_.-]*\b\s*[:=]\s*["'][^"']+["']`,
-
 	  "aws_access_key":      `AKIA[0-9A-Z]{16}`,
 	  "google_api_key":      `AIza[0-9A-Za-z\-_]{35}`,
 	  "jwt":                 `eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`,
@@ -59,32 +54,12 @@ func (s *Scanner) LoadDefaultRegexes() error {
 	  "firebase_url":        `https://[A-Za-z0-9-]+\.firebaseio\.com`,
 	  "sentry_dsn":          `https://[A-Za-z0-9]+@[A-Za-z0-9.-]+/\d+`,
   }
-
 	for name, pattern := range rules {
 		if err := s.AddRegex(name, pattern); err != nil {
 			return err
 		}
 	}
-
 	return nil
-}
-
-func (s *Scanner) LoadCustomRegexes() error {
-  if cbrRegexps == nil {
-    return nil
-  }
-  for _, val := range cbrRegexps {
-	  parts := strings.SplitN(val, ":", 2)
-	  if len(parts) != 2 {
-		  return fmt.Errorf("invalid regexp: %q", val)
-	  }
-	  name := strings.TrimSpace(parts[0])
-	  value := strings.TrimSpace(parts[1])
-	  if err := s.AddRegex(name, value); err != nil {
-	    return err
-	  }
-  }
-  return nil
 }
 
 func (s *Scanner) Scan(filename string, data []byte) []Match {

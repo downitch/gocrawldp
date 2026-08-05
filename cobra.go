@@ -4,14 +4,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	cbrTargetURL     string
-	cbrProfile       string
-	cbrHeadless      bool
-	cbrHeaders       []string
-	cbrDefaultRegexp bool
-	cbrRegexps       []string
-)
+type Config struct {
+  TargetURL         string
+  Profile           string
+  Headless          bool
+  Headers           []string
+  SkipDefaultRegexp bool
+  CustomRegexps     []string
+}
+
+var cfg Config
 
 var rootCmd = &cobra.Command{
 	Use:   "gocrawldp",
@@ -23,42 +25,42 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().StringVar(
-		&cbrTargetURL,
+		&cfg.TargetURL,
 		"url",
 		"",
 		"Target URL",
 	)
 	
 	rootCmd.Flags().StringVar(
-	  &cbrProfile,
+	  &cfg.Profile,
 	  "profile",
 	  "",
 	  "Path to chrome profile",
 	)
 
 	rootCmd.Flags().BoolVar(
-		&cbrHeadless,
+		&cfg.Headless,
 		"headless",
 		false,
 		"Run Chrome in headless mode",
 	)
 
 	rootCmd.Flags().StringArrayVar(
-		&cbrHeaders,
+		&cfg.Headers,
 		"header",
 		nil,
 		"Extra HTTP header (Name: Value)",
 	)
 	
 	rootCmd.Flags().StringArrayVar(
-	  &cbrRegexps,
+	  &cfg.CustomRegexps,
 	  "regexp",
 	  nil,
 	  "Extra regular expressions (Name: `pattern`)",
 	)
 	
 	rootCmd.Flags().BoolVar(
-	  &cbrDefaultRegexp,
+	  &cfg.SkipDefaultRegexp,
 	  "nodefrexp",
 	  false,
 	  "Omit loading of default regular expressions",
